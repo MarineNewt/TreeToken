@@ -2,7 +2,7 @@ import React, { Component } from 'react';
 import Web3 from 'web3';
 import TreeToken from '../contracts/TreeToken.json'
 import Main from './Main.js'
-import logo from './logo.jpg';
+import logo from './treeL.jpg';
 import './App.css';
 
 class App extends Component {
@@ -19,19 +19,24 @@ class App extends Component {
     this.setState({ account: accounts[0] })
 
     const networkId = await web3.eth.net.getId() 
+    let blockNumber = await web3.eth.getBlockNumber()
+    this.setState({ blockNumber })
 
-//load Tree Token
-const treeTokenData = TreeToken.networks[networkId]
-if(treeTokenData) {
-  const treeToken = new web3.eth.Contract(TreeToken.abi, treeTokenData.address)
-  this.setState({ treeToken })
-  let treeTokenBalance = await treeToken.methods.balanceOf(this.state.account).call()
-  this.setState({ treeTokenBalance: treeTokenBalance.toString() })
-
-}
-else {
-  window.alert('TreeToken contract not deployed to detected network. ')
-}
+    //load Tree Token
+    const treeTokenData = TreeToken.networks[networkId]
+    if(treeTokenData) {
+      const treeToken = new web3.eth.Contract(TreeToken.abi, treeTokenData.address)
+      this.setState({ treeToken })
+      let treeTokenBalance = await treeToken.methods.balanceOf(this.state.account).call()
+      this.setState({ treeTokenBalance: treeTokenBalance.toString() })
+      let treeTokenSupply = await treeToken.methods.totalSupply().call()
+      this.setState({ treeTokenSupply: treeTokenSupply.toString() })
+      let untilMine = await treeToken.methods.mineTime(this.state.account).call()
+      this.setState({ untilMine: untilMine.toString()  })
+      }
+    else {
+      window.alert('TreeToken contract not deployed to detected network. ')
+      }
 
     this.setState({ loading: false })
   }
@@ -61,6 +66,9 @@ else {
       account: '0x0',
       treeToken: {},
       treeTokenBalance: '0',
+      treeTokenSupply: '0',
+      untilMine: '0',
+      blockNumber: '0',
       loading: true
     }
   }
@@ -73,6 +81,9 @@ else {
       content = <Main
       mint={this.mint}
       treeTokenBalance={this.state.treeTokenBalance}
+      treeTokenSupply={this.state.treeTokenSupply}
+      blockNumber={this.state.blockNumber}
+      untilMine={this.state.untilMine}
       />
     }
     return (
